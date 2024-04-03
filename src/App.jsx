@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChakraProvider, Button, FormControl, FormLabel, Box } from '@chakra-ui/react'
 import {
   Table,
@@ -12,7 +12,14 @@ import {
   TableContainer,
 } from '@chakra-ui/react'
 
-import {Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react'
+import {Modal,
+   ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    useDisclosure } from '@chakra-ui/react'
 
 import {
   Editable,
@@ -140,29 +147,7 @@ const ListBooks = () => {
 
 const ListAuthors = () => {
   const [authors, setAuthors] = useState([]);
-  // const [authorFirstName, setAuthorFirstName] = useState('');
-  // const [authorLastName, setAuthorLastName] = useState('');
 
-  // const updatedAuthor = {
-  //   authorFirstName: authorFirstName,
-  //   authorLastName: authorLastName
-  // }
-
-  // const handleFirstNameChange = (author) => {
-  //   setAuthorFirstName(document.getElementById(author.authorID + 'first'));
-  // };
-
-  // const handleLastNameChange = (author) => {
-  //   setAuthorLastName(document.getElementById(author.id + 'last'));
-  // };
-
-  // const handleRowChange = (selectedAuthor) => {
-  //   console.log(selectedAuthor.authorID);
-  //   console.log(selectedAuthor.authorFirstName);
-  //   console.log(selectedAuthor.authorLastName);
-
-  //   console.log(updatedAuthor);
-  // };
 
   const handleClick = async () => {
     const myHeaders = new Headers();
@@ -221,64 +206,26 @@ const ListAuthors = () => {
             <Tr key={author.authorID}>
               <Td>{author.authorID}</Td>
               <Td>
-                <Editable id={author.authorID + 'first'} defaultValue={author.authorFirstName} >
+                <Editable onSubmit={(value) => {author.authorFirstName = value}} defaultValue={author.authorFirstName} >
                 <EditablePreview />
                 <EditableInput />
                 </Editable>
                 </Td>
               <Td>
-                <Editable id={author.authorID + 'last'} defaultValue={author.authorLastName} >
+                <Editable onSubmit={(value) => {author.authorLastName = value}} defaultValue={author.authorLastName} >
                 <EditablePreview />
                 <EditableInput />
                 </Editable>
                 </Td>
-              <Td><Button onClick={() => handleDelete(author.authorID)}>Delete</Button></Td>
+              <Td><Button onClick={() => handleDelete(author.authorID)}>Delete</Button>
+              <Button onClick={() => console.log(author)}>Update</Button>
+              </Td>
             </Tr>
           ))}
         </Tbody>
       </Table>
     </TableContainer>
   );}
-
-
-
-/* <TableContainer>
-<Table variant='striped' colorScheme='teal'>
-  <TableCaption onClick={handleClick}>Authors</TableCaption>
-  <Thead>
-    <Tr>
-      <Th>Author ID</Th>
-      <Th>First Name</Th>
-      <Th>Last Name</Th>
-      <Th>Actions</Th>
-    </Tr>
-  </Thead>
-  <Tbody>
-    {authors.map((author, index) => (
-      <Tr key={author.authorID}  onChange={() => handleRowChange(author)}>
-        <Td>{author.authorID}</Td>
-        <Td>
-          <Editable id={author.authorID + 'first'} defaultValue={author.authorFirstName} onChange={handleFirstNameChange(author)}>
-          <EditablePreview />
-          <EditableInput />
-          </Editable>
-          </Td>
-        <Td>
-          <Editable id={author.authorID + 'last'} defaultValue={author.authorLastName} onChange = {handleLastNameChange(author)}>
-          <EditablePreview />
-          <EditableInput />
-          </Editable>
-          </Td>
-        <Td><Button onClick={() => handleDelete(author.authorID)}>Delete</Button></Td>
-      </Tr>
-    ))}
-  </Tbody>
-</Table>
-</TableContainer> */
-//   );
-// };
-
-
 
 
 const AddBookForm = () => {
