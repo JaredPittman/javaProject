@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChakraProvider, Button, FormControl, FormLabel, Box } from '@chakra-ui/react'
+import { ChakraProvider, Button, FormControl, FormLabel, Box, Flex } from '@chakra-ui/react'
 import {
   Table,
   Thead,
@@ -12,38 +12,37 @@ import {
   TableContainer,
 } from '@chakra-ui/react'
 
-import {Modal,
-   ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalFooter,
-    ModalBody,
-    ModalCloseButton,
-    useDisclosure } from '@chakra-ui/react'
-
 import {
   Editable,
   EditableInput,
   EditableTextarea,
   EditablePreview,
+  Select
 } from '@chakra-ui/react'
 
 import './App.css';
+import theme from './theme';
 
 function App() {
   return (
     <ChakraProvider>
+      <Box>
       <Card>
       <ListBooks />
       </Card>
       <Card>
       <ListAuthors />
       </Card>
+      </Box>
       <Card>
-      <AddAuthorForm />
-      </Card>
-      <Card>
-      <AddBookForm />
+      <Flex flexDirection={'row'} justifyContent={'space-between'}>
+      <Box>
+      <AuthorByID />
+      </Box>
+      <Box>
+      <BookByID />
+      </Box>
+      </Flex>
       </Card>
     </ChakraProvider>
   )
@@ -53,7 +52,12 @@ export default App
 
 const ListBooks = () => {
   const [books, setBooks] = useState([]);
-  const [open, setOpen] = useState(false);
+  const [newTitle, setnewTitle] = useState('');
+  const [newIsbn, setnewIsbn] = useState('');
+  const [newEdNumber, setnewEdNumber] = useState('');
+  const [newCopyRight, setnewCopyRight] = useState('');
+  const [newAuthor, setnewAuthor] = useState('');
+
 
   const handleClick = async () => {
     const myHeaders = new Headers();
@@ -93,7 +97,30 @@ const ListBooks = () => {
     }
   }
 
-  const handleUpdate = async (id) => {
+  const handleAddBook = async (e) => {
+    e.preventDefault();
+
+    const myHeaders = new Headers();
+    // myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
+    myHeaders.append("Content-Type", "application/json");
+
+    const requestOptions = {
+      mode: 'no-cors',
+      method: "POST",
+      headers: myHeaders,
+      redirect: "follow"
+    };
+
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/books?isbn=" + newIsbn + "&title=" + newTitle +  "&editionNumber=" + newEdNumber + "&copyright="+ newCopyRight + "&author_id=" + newAuthor, requestOptions);
+      const result = await response.json();
+      console.log(result);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleUpdate = async (book) => {
     const myHeaders = new Headers();
     myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
 
@@ -104,7 +131,7 @@ const ListBooks = () => {
     };
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/books/${id}`, requestOptions);
+      const response = await fetch(`http://localhost:8080/api/v1/books/${book.isbn}?isbn=` + book.isbn + "&title=" + book.title + "&editionNumber=" + book.edNumber + "&copyright=" + book.copyright, requestOptions);
       const result = await response.json();
       console.log(result);
     } catch (error) {
@@ -130,14 +157,88 @@ const ListBooks = () => {
           {books.map((book, index) => (
             console.log(book),
             <Tr key={index}>
-              <Td>{book.title}</Td>
-              <Td>{book.isbn}</Td>
-              <Td>{book.edNumber}</Td>
-              <Td>{book.copyright}</Td>
+              <Td>
+                <Editable onChange={(value) => {book.title = value}} defaultValue={book.title} >
+                <EditablePreview />
+                <EditableInput />
+                </Editable>
+                </Td>
+                <Td>
+                <Editable onChange={(value) => {book.isbn = value}} defaultValue={book.isbn} >
+                <EditablePreview />
+                <EditableInput />
+                </Editable>
+                </Td>
+                <Td>
+                <Editable onChange={(value) => {book.edNumber = value}} defaultValue={book.edNumber} >
+                <EditablePreview />
+                <EditableInput />
+                </Editable>
+                </Td>
+                <Td>
+                <Editable onChange={(value) => {book.copyright = value}} defaultValue={book.copyright} >
+                <EditablePreview />
+                <EditableInput />
+                </Editable>
+                </Td>
               <Td>{book.authors[0].authorFirstName + ' ' + book.authors[0].authorLastName}</Td>
-              <Td><Button onClick={() => handleDelete(book.isbn)}>Delete</Button></Td>
+              <Td><Button onClick={() => handleDelete(book.isbn)}>Delete</Button>
+              <Button onClick={() => handleUpdate(book)}>Update</Button>
+              </Td>
             </Tr>
           ))}
+        </Tbody>
+        <Tbody>
+          <Tr color={'grey'}>
+          <Td>
+          <Editable onSubmit={(value) => {
+            setnewTitle(value);
+          }
+          }defaultValue='Title'>
+          <EditablePreview />
+          <EditableInput />
+          </Editable>
+          </Td>
+          <Td>
+          <Editable onSubmit={(value) => {
+            setnewIsbn(value);
+          }
+          } defaultValue='ISBN'>
+          <EditablePreview />
+          <EditableInput />
+          </Editable>
+          </Td>
+          <Td>
+          <Editable onSubmit={(value) => {
+            setnewEdNumber(value);
+          }
+          } defaultValue='Edition Number'>
+          <EditablePreview />
+          <EditableInput />
+          </Editable>
+          </Td>
+          <Td>
+          <Editable onSubmit={(value) => {
+            setnewCopyRight(value);
+          }
+          } defaultValue='CopyRight'>
+          <EditablePreview />
+          <EditableInput />
+          </Editable>
+          </Td>
+          <Td>
+          <Editable onSubmit={(value) => {
+            setnewAuthor(value);
+          }
+          } defaultValue='Author'>
+          <EditablePreview />
+          <EditableInput />
+          </Editable>
+          </Td>
+          <Td>
+          <Button onClick={handleAddBook}>Add</Button>
+          </Td>
+          </Tr>
         </Tbody>
       </Table>
     </TableContainer>
@@ -147,6 +248,8 @@ const ListBooks = () => {
 
 const ListAuthors = () => {
   const [authors, setAuthors] = useState([]);
+  const [newAuthorFirstName, setnewAuthorFirstName] = useState('');
+  const [newAuthorLastName, setnewAuthorLastName] = useState('');
 
 
   const handleClick = async () => {
@@ -167,7 +270,48 @@ const ListAuthors = () => {
       console.error(error);
     }
     console.log(authors);
-    
+  };
+
+  const handleUpdate = async (author) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
+
+    const requestOptions = {
+      method: "PUT",
+      headers: myHeaders,
+      redirect: "follow"
+    };
+
+    try {
+
+      const response = await fetch(`http://localhost:8080/api/v1/authors/${author.authorID}?author_id=` + author.authorID + '&firstName='+ author.authorFirstName + '&lastName='+author.authorLastName, requestOptions);
+      const result = await response.json();
+      console.log(result);
+    }
+    catch (error) {
+      console.error(error);
+    }
+  }
+  const handleAddAuthor = async (e, newAuthor) => {
+    e.preventDefault();
+
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    const requestOptions = {
+      mode: 'no-cors',
+      method: "POST",
+      headers: myHeaders,
+      redirect: "follow"
+    };
+
+    try {
+      const response = await fetch("http://localhost:8080/api/v1/authors?firstName=" + newAuthorFirstName + "&lastName=" + newAuthorLastName, requestOptions);
+      const result = await response.json();
+      console.log(result);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -206,132 +350,185 @@ const ListAuthors = () => {
             <Tr key={author.authorID}>
               <Td>{author.authorID}</Td>
               <Td>
-                <Editable onSubmit={(value) => {author.authorFirstName = value}} defaultValue={author.authorFirstName} >
+                <Editable onChange={(value) => {author.authorFirstName = value}} defaultValue={author.authorFirstName} >
                 <EditablePreview />
                 <EditableInput />
                 </Editable>
                 </Td>
               <Td>
-                <Editable onSubmit={(value) => {author.authorLastName = value}} defaultValue={author.authorLastName} >
+                <Editable onChange={(value) => {author.authorLastName = value}} defaultValue={author.authorLastName} >
                 <EditablePreview />
                 <EditableInput />
                 </Editable>
                 </Td>
               <Td><Button onClick={() => handleDelete(author.authorID)}>Delete</Button>
-              <Button onClick={() => console.log(author)}>Update</Button>
+              <Button onClick={() => handleUpdate(author)}>Update</Button>
               </Td>
             </Tr>
           ))}
+          {/*
+          TODO:
+          For this add author row, I believe that seeing as it is hard coded I could assign id's to the input fields and then 
+          use the id's to get the values of the input fields and then use those values to add the author to the database.
+          This would be more efficent than using the state variables and reloading on change. 
+
+          See that this is tested on capstone.
+          */}
+        </Tbody>
+        <Tbody>
+          <Tr color={'grey'}>
+          <Td>
+          Add Author
+          </Td>
+          <Td>
+          <Editable onChange={(value) => {
+            setnewAuthorFirstName(value);
+          }}defaultValue='First Name'>
+          <EditablePreview />
+          <EditableInput />
+          </Editable>
+          </Td>
+          <Td>
+          <Editable onChange={(value) => {
+            setnewAuthorLastName(value);
+          }} defaultValue='Last Name'>
+          <EditablePreview />
+          <EditableInput />
+          </Editable>
+          </Td>
+          <Td>
+          <Button onClick={handleAddAuthor}>Add</Button>
+          </Td>
+          </Tr>
         </Tbody>
       </Table>
     </TableContainer>
   );}
 
+const BookByID = () => {
+  const [bookId, setBookId] = useState('');
+  const [book, setBook] = useState({});
+  const [books, setBooks] = useState([]);
+  const [selectedBookID, setSelectedBookID] = useState('');
 
-const AddBookForm = () => {
-  const [title, setTitle] = useState('');
-  const [isbn, setIsbn] = useState('');
-  const [edNumber, setEdNumber] = useState('');
-  const [copyright, setCopyright] = useState('');
-  const [author, setAuthor] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const getBooks = async () => {
     const myHeaders = new Headers();
-    // myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
-    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
 
     const requestOptions = {
-      mode: 'no-cors',
-      method: "POST",
+      method: "GET",
       headers: myHeaders,
       redirect: "follow"
     };
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/books?isbn=" + isbn + "&title=" + title +  "&editionNumber=" + edNumber + "&copyright="+ copyright + "&author_id=" + author, requestOptions);
+      const response = await fetch("http://localhost:8080/api/v1/books", requestOptions);
       const result = await response.json();
-      console.log(result);
+      setBooks(result);
     } catch (error) {
       console.error(error);
     }
+    console.log(books);
   };
 
+  const handleClick = async () => {
+    const myHeaders = new Headers();
+    myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
+    const requestOptions = {
+      method: "GET",
+      headers: myHeaders,
+      redirect: "follow"
+    };
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/books/${selectedBookID}`, requestOptions);
+      const result = await response.json();
+      setBook(result);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
-    <FormControl >
-      <FormLabel>Add Book</FormLabel>
-      <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)}/>
-      <input type="text" placeholder="ISBN" value={isbn} onChange={e => setIsbn(e.target.value)}/>
-      <input type="text" placeholder="Edition Number" value={edNumber} onChange={e => setEdNumber(e.target.value)}/>
-      <input type="text" placeholder="Copyright" value={copyright} onChange={e => setCopyright(e.target.value)}/>
-      <input type="text" placeholder="Author" value={author} onChange={e => setAuthor(e.target.value)}/>
-      <Button onClick={handleSubmit} type="submit">Submit</Button>
-    </FormControl>
+    <>
+      <Select placeholder="Select Book ID" onClick={getBooks} value={selectedBookID} onChange={(e) => setSelectedBookID(e.target.value)}>
+        {books.map((book) => (
+          <option onClick={() => {
+            setSelectedBookID(book.isbn);
+            console.log(selectedBookID)
+          }} key={book.isbn} value={book.isbn}>{book.isbn}</option>
+        ))
+        }
+      </Select>
+      <Button onClick={handleClick}>Get Book</Button>
+    </>
   );
 };
 
-const AddAuthorForm = () => {
-  const [authorFirstName, setAuthorFirstName] = useState('');
-  const [authorLastName, setAuthorLastName] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const AuthorByID = () => {
+  const [authors, setAuthors] = useState([]);
+  const [selectedAuthorID, setSelectedAuthorID] = useState(null);
 
+  const getAuthors = async () => {
     const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
 
     const requestOptions = {
-      mode: 'no-cors',
-      method: "POST",
+      method: "GET",
       headers: myHeaders,
       redirect: "follow"
     };
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/authors?firstName=" + authorFirstName + "&lastName=" + authorLastName, requestOptions);
+      const response = await fetch("http://localhost:8080/api/v1/authors", requestOptions);
       const result = await response.json();
-      console.log(result);
+      setAuthors(result);
     } catch (error) {
       console.error(error);
     }
+    console.log(authors);
   };
+
+  const handleClick = async (id) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Cookie", "connect.sid=s%3Aw1qerQho4F9cB23w-dil1kPjFJMMtaHB.6%2BXqphpaSqfeS8MUTSxZYAwXFkjfN3tcbpsMt2Q%2FV9w");
+    const requestOptions = {
+      method: "GET",
+      headers: myHeaders,
+      redirect: "follow"
+    };
+    try {
+      const response = await fetch(`http://localhost:8080/api/v1/authors/` + id, requestOptions);
+      const result = await response.json();
+      setAuthor(result);
+    } catch (error) {
+      console.error(error);
+    }
+    console.log(id);
+  }
 
   return (
-    <FormControl >
-      <FormLabel>Add Author</FormLabel>
-      <input type="text" placeholder="First Name" value={authorFirstName} onChange={e => setAuthorFirstName(e.target.value)}/>
-      <input type="text" placeholder="Last Name" value={authorLastName} onChange={e => setAuthorLastName(e.target.value)}/>
-
-      <Button onClick={handleSubmit} type="submit">Submit</Button>
-    </FormControl>
+    <>
+      <Select placeholder="Select Author ID" onClick={getAuthors}>
+        {authors.map((author) => (
+          console.log(author),
+          <option onClick={() => {
+            setSelectedAuthorID(author.authorID);
+          }} key={author.authorID}>{author.authorID}</option>
+        ))
+        }
+      </Select>
+      <Button onClick={() => {
+        console.log(selectedAuthorID);
+      }}>Get Author</Button>
+    </>
   );
-}
+};
 
 const Card = ({ children }) => {
-    return (
-      <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="6" m="4">
-        {children}
-      </Box>
-    );
-  };
-        
-const BaseModal = ({children, headerText}) => {
-    const { isOpen, onOpen, onClose } = useDisclosure()
-    return (
-      <>
-        <Button onClick={onOpen}>{headerText}</Button>
-  
-        <Modal isOpen={isOpen} onClose={onClose}>
-          <ModalOverlay  />
-          <ModalContent>
-            <ModalHeader>{headerText}</ModalHeader>
-            <ModalCloseButton />
-            <ModalBody>
-              {children}
-            </ModalBody>
-          </ModalContent>
-        </Modal>
-      </>
-    )
-  }
+  return (
+    <Box borderWidth="1px" borderRadius="lg" overflow="hidden" p="6" m="4">
+      {children}
+    </Box>
+  );
+};
